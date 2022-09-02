@@ -32,6 +32,7 @@ class UserModel:
                     self.model = await task
             return self.model
 
+
     @tasks.loop()
     async def process_input_queue(self):
         sentences_sample = ""
@@ -46,10 +47,10 @@ class UserModel:
                         self.input_queue.task_done()
                 logging.debug(f"{self.user} model: combined samples, starting training")
                 self.training_tasks.append(self.bot.loop.run_in_executor(None, functools.partial(markovify.NewlineText,
-                                                                                           data={
-                                                                                               'input_text': sentences_sample,
-                                                                                               'well_formed': False
-                                                                                           })))
+                                                                                                 data={
+                                                                                                     'input_text': sentences_sample,
+                                                                                                     'well_formed': False
+                                                                                                 })))
 
 
 class MarkovifyLive(commands.Cog):

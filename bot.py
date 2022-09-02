@@ -4,6 +4,7 @@ from discord.ext import commands
 import psutil, os, sys
 from discord_slash import SlashCommand
 
+
 class Bot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
