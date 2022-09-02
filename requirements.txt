@@ -1,0 +1,8 @@
+markovify
+websockets
+aiosqlite
+python-dotenv
+py-cord=>2.0.0
+psutil
+whoami
+discord-py-interactions
