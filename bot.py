@@ -36,6 +36,7 @@ class SenvrBot(commands.AutoShardedBot):
             await bot.change_presence(
                 activity=discord.Activity(type=discord.ActivityType.watching, name=str(await self.status_queue.get())))
 
+
 bot = SenvrBot()
 if __name__ == "__main__":
     @bot.event
