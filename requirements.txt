@@ -1,9 +1,9 @@
-markovify
-websockets
+markovify~=0.9.4
+websockets~=10.3
 aiosqlite
-python-dotenv
+python-dotenv~=0.20.0
 py-cord=>2.0.0
 psutil
 whoami
 discord-py-interactions
-aiofiles
+aiofiles~=0.8.0
