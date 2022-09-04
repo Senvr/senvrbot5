@@ -3,12 +3,14 @@ import concurrent.futures
 import html
 import logging
 import discord
+import os
+from dotenv import load_dotenv
 import markovify
 
-
+load_dotenv()
 def train(sample: str):
     try:
-        model = markovify.NewlineText(html.escape(sample.strip()), well_formed=False)
+        model = markovify.NewlineText(html.escape(sample.strip()), well_formed=bool(os.getenv("ML_WELL_FORMED")))
         assert model
         return model
     except (KeyError, AssertionError) as e:

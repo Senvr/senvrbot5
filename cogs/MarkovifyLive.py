@@ -22,11 +22,21 @@ class MarkovifyLive(commands.Cog):
         self.queue = asyncio.Queue()
         self.counter = 0
         self.diversity = 0
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=int(os.getenv("ML_TASKS")))
+        self.executor = concurrent.futures.ThreadPoolExecutor()
         self.messages_per_sec = 0
         self.last_messages_per_sec = 0
         self.rate_change = 0
         self.status_poster.start()
+        self.channel_dict = {}
+        self.result_queue=asyncio.LifoQueue()
+
+    async def export(self):
+        async with self.lock:
+            model_dict = None
+            if self.model:
+                model_dict = self.model.to_dict
+            export = {"channel_dict": self.channel_dict, "model_dict": model_dict, "counter": self.counter}
+        return export
 
     @tasks.loop(seconds=2)
     async def status_poster(self):
@@ -46,31 +56,40 @@ class MarkovifyLive(commands.Cog):
             time_taken = (end_time - start_time)
             messages_per_second = counter / time_taken
             self.messages_per_sec = (messages_per_second + self.messages_per_sec) / 2
-            logging.debug(f"Training...")
             async with self.lock:
                 self.counter += counter
                 if self.model:
                     self.model = await self.bot.loop.run_in_executor(self.executor, markovify.combine,(self.model, new_model))
                 else:
                     self.model = new_model
-            logging.debug(f"Trained")
 
+                if self.result_queue.empty() and self.model:
+                    result = await self.bot.loop.run_in_executor(self.executor, self.model.make_sentence)
+                    if result:
+                        await self.result_queue.put(result)
+
+    async def make_sentence(self):
+        async with self.lock:
+            result = await self.result_queue.get()
+        self.result_queue.task_done()
+        return result
     async def channel_crawler(self, channel: discord.TextChannel):
         logging.info(f"{channel}: Crawling now...")
         try:
-            async for message in channel.history(oldest_first=True, limit=None):
+            async for message in channel.history(oldest_first=True, limit=None, after=self.channel_dict[channel.id]):
                 if not message.author.bot and message.content.strip():
                     if self.queue.qsize() >= int(os.getenv("ML_SAMPLE_SIZE")):
-                        logging.info(f"{channel}: ML_SAMPLE_SIZE")
+                        logging.debug(f"{channel.id}: ML_SAMPLE_SIZE")
                         await self.train_and_count()
-                        logging.debug(f"{channel}: Done")
                     await self.queue.put(message)
                 else:
                     await asyncio.sleep(0)
-            logging.debug(f"{channel}: finishing queue")
+            logging.debug(f"{channel.id}: finishing ")
             await self.train_and_count()
         except discord.Forbidden as e:
-            logging.warning(f"{channel}: {e}")
+            logging.warning(f"{channel.id}: {e}")
+        logging.info(f"{channel.id}: done")
+
     async def wait_on_crawlers(self):
         logging.info(f"Waiting on {len(self.crawlers)} crawlers")
         for task_done in asyncio.as_completed(self.crawlers):
@@ -82,6 +101,10 @@ class MarkovifyLive(commands.Cog):
     async def on_ready(self):
         for guild in self.bot.guilds:
             for channel in guild.text_channels:
+                if channel.id not in self.channel_dict.keys():
+                    async with self.lock:
+                        self.channel_dict[channel.id] = None
+
                 task = asyncio.create_task(self.channel_crawler(channel))
                 if len(self.crawlers) >= int(os.getenv('ML_TASKS')):
                     logging.info(f"Hit max ML_TASKS")
@@ -95,7 +118,7 @@ class MarkovifyLive(commands.Cog):
 
     @commands.command()
     async def speak(self, ctx):
-        result=None
+        result = None
         async with self.lock:
             if not self.model:
                 return await ctx.reply("No accessable model yet, please wait")
@@ -107,13 +130,11 @@ class MarkovifyLive(commands.Cog):
                 tries = 0
             else:
                 async with ctx.typing():
-                    async with self.lock:
-                        result = await self.bot.loop.run_in_executor(self.executor, self.model.make_sentence)
-                        try:
-                            result = html.unescape(result).strip()
-                        except TypeError as e:
-                            logging.warning(f"{result} failed reforming")
-                        await asyncio.sleep(float(os.getenv("ML_TYPING_TIME")))
+                    result = await self.make_sentence()
+                    try:
+                        result = html.unescape(result).strip()
+                    except TypeError as e:
+                        logging.warning(f"{result} failed reforming {e}")
         await ctx.reply(result)
 
 
