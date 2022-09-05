@@ -14,7 +14,7 @@ class SenvrBot(commands.AutoShardedBot):
             case_insensitive=True
             # help_command=None
         )
-        self.status_queue = asyncio.LifoQueue(maxsize=4)
+        self.status_queue = asyncio.LifoQueue(maxsize=3)
 
     def bot_reload(self):
         print(f"Loading modules")
