@@ -9,12 +9,12 @@ import discord
 from discord.ext import tasks, commands
 from dotenv import load_dotenv
 
-import bot
+import senvrbot
 import markovifyasync as mkva
 
 
 class MarkovifyLive(commands.Cog):
-    def __init__(self, bot: bot.SenvrBot):
+    def __init__(self, bot: senvrbot.SenvrBot):
         self.bot = bot
         self.crawlers = []
         self.model = None
@@ -67,6 +67,7 @@ class MarkovifyLive(commands.Cog):
                     result = await self.bot.loop.run_in_executor(self.executor, self.model.make_sentence)
                     if result:
                         await self.result_queue.put(result)
+                        await self.bot.debug_queue.put(result)
 
     async def make_sentence(self):
         async with self.lock:
@@ -99,6 +100,7 @@ class MarkovifyLive(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        return
         for guild in self.bot.guilds:
             for channel in guild.text_channels:
                 if channel.id not in self.channel_dict.keys():
