@@ -117,7 +117,6 @@ if __name__ == "__main__":
             bot.stop_event.set()
             logging.warning(f"DEBUGGING: STOPPING AFTER {bot.time_to_stop}s")
             await asyncio.sleep(bot.time_to_stop)
-            exit(0)
-
-    print(os.environ.get("DISCORD_TOKEN")[4:])
+            #exit(0)
     bot.run(os.environ.get("DISCORD_TOKEN"), reconnect=True)
+    print("DONE")
