@@ -117,4 +117,4 @@ if __name__ == "__main__":
             await bot.close()
 
 
-    bot.run(os.getenv("DISCORD_TOKEN"), reconnect=True)
+    bot.run(os.environ.get("DISCORD_TOKEN"), reconnect=True)
