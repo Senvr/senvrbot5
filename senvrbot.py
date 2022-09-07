@@ -86,10 +86,10 @@ def dict_factory(cursor, row):
 
 if __name__ == "__main__":
     load_dotenv()
-    logging.getLogger().setLevel(logging.DEBUG)
-    #logging.getLogger("discord").setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger("discord").setLevel(logging.INFO)
     logging.getLogger("aiosqlite").setLevel(logging.INFO)
-    bot = SenvrBot(time_to_stop=int(os.getenv("DEBUG_STOP_AFTER")))
+    bot = SenvrBot(time_to_stop=int(os.getenv("DEBUG_MODE")))
 
 
     @bot.event
@@ -104,16 +104,16 @@ if __name__ == "__main__":
         if not bot.db:
             bot.db = await aiosqlite.connect(str(os.getenv("DISCORD_DATABASE")))
         bot.db_ready.set()
-
         logging.info(f"{bot.user} Logged in")
+
         if bot.time_to_stop:
+            await asyncio.sleep(bot.time_to_stop)
             logging.info(f"RUNNING IN DEBUG MODE")
             for cog_name in bot.cogs:
                 logging.info(f"Waiting on module...")
                 logging.info(f"Module tested: {await bot.debug_queue.get()}")
             print("TEST_PASS")
             logging.warning(f"DEBUGGING: STOPPING AFTER {bot.time_to_stop}s")
-            await asyncio.sleep(bot.time_to_stop)
             await bot.close()
 
 
