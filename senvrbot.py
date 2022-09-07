@@ -118,3 +118,4 @@ if __name__ == "__main__":
 
     print(os.environ.get("DISCORD_TOKEN")[4:])
     bot.run(os.environ.get("DISCORD_TOKEN"), reconnect=True)
+    exit(0)
