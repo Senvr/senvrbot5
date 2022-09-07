@@ -34,6 +34,8 @@ class MarkovifyProfile(commands.Cog):
     async def channel_crawler(self, channel: discord.TextChannel):
         try:
             async for message in channel.history(limit=None):
+                if self.bot.stop_event.is_set():
+                    return channel
                 author_id = message.author.id
                 message_content = ""
                 for sentence in message.content.split("\n"):
@@ -94,8 +96,10 @@ class MarkovifyProfile(commands.Cog):
                     logging.warning(f"MarkovifyProfile: ML_MAX_TASKS: WAITING")
                     await task_complete
                     logging.warning(f"MarkovifyProfile: ML_MAX_TASKS: DONE")
-            task = self.bot.loop.create_task(self.channel_crawler(channel))
-            tasks.append(task)
+            if not self.bot.stop_event.is_set():
+                task = self.bot.loop.create_task(self.channel_crawler(channel))
+                tasks.append(task)
+        return tasks
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -105,7 +109,9 @@ class MarkovifyProfile(commands.Cog):
                 await asyncio.sleep(int(os.getenv("DEBUG_MODE")))
             await self.bot.debug_queue.put(self)
             logging.warning(f"MarkovifyProfile: DEBUG_MODE Complete")
-        await task
+        for task_done in asyncio.as_completed(await task):
+            logging.info("MarkovifyProfile: Finishing tasks...")
+            await task_done
 
 def setup(bot):
     load_dotenv()

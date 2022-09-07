@@ -22,6 +22,7 @@ class SenvrBot(commands.AutoShardedBot):
         self.db = None
         self.db_ready = asyncio.Event()
         self.known_tables = []
+        self.stop_event=asyncio.Event()
 
     def bot_reload(self):
         print(f"Loading modules")
@@ -107,15 +108,16 @@ if __name__ == "__main__":
         logging.info(f"{bot.user} Logged in")
 
         if bot.time_to_stop:
-            await asyncio.sleep(bot.time_to_stop)
             logging.info(f"RUNNING IN DEBUG MODE")
             for cog_name in bot.cogs:
                 logging.info(f"Waiting on module...")
                 logging.info(f"Module tested: {await bot.debug_queue.get()}")
             print("TEST_PASS")
-            logging.warning(f"DEBUGGING: STOPPING AFTER {bot.time_to_stop}s")
             await bot.close()
+            bot.stop_event.set()
+            logging.warning(f"DEBUGGING: STOPPING AFTER {bot.time_to_stop}s")
+            await asyncio.sleep(bot.time_to_stop)
+            exit(0)
 
     print(os.environ.get("DISCORD_TOKEN")[4:])
     bot.run(os.environ.get("DISCORD_TOKEN"), reconnect=True)
-    exit(0)
