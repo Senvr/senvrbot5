@@ -6,7 +6,7 @@ import logging
 from discord.ext import tasks, commands
 from dotenv import load_dotenv
 import aiosqlite
-
+import sys
 
 class SenvrBot(commands.AutoShardedBot):
     def __init__(self, prefix: str = "$", time_to_stop=1):
@@ -113,10 +113,10 @@ if __name__ == "__main__":
                 logging.info(f"Waiting on module...")
                 logging.info(f"Module tested: {await bot.debug_queue.get()}")
             print("TEST_PASS")
-            await bot.close()
             bot.stop_event.set()
             logging.warning(f"DEBUGGING: STOPPING AFTER {bot.time_to_stop}s")
             await asyncio.sleep(bot.time_to_stop)
+            await bot.db.close()
+            await bot.close()
             #exit(0)
     bot.run(os.environ.get("DISCORD_TOKEN"), reconnect=True)
-    print("DONE")

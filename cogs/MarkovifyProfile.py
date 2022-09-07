@@ -83,15 +83,16 @@ class MarkovifyProfile(commands.Cog):
         for guild in self.bot.guilds:
             guild: discord.Guild
             for channel in guild.text_channels:
+                if self.bot.stop_event.is_set():
+                    return
                 channel: discord.TextChannel
                 logging.info(f"MarkovifyProfile: Added {channel} to crawl list")
                 channels.append(channel)
 
-
         random.shuffle(channels)
         logging.info(f"MarkovifyProfile: Now crawling {len(channels)} channels")
         for channel in channels:
-            if len(tasks) >= int(os.getenv("ML_MAX_TASKS")):
+            if len(tasks) >= int(os.getenv("ML_MAX_TASKS")) or self.bot.stop_event.is_set():
                 for task_complete in asyncio.as_completed(tasks):
                     logging.warning(f"MarkovifyProfile: ML_MAX_TASKS: WAITING")
                     await task_complete
@@ -103,15 +104,17 @@ class MarkovifyProfile(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        task=self.bot.loop.create_task(self.crawl_all_channels())
+        task = self.bot.loop.create_task(self.crawl_all_channels())
         if os.getenv("DEBUG_MODE"):
-            while not await self.debug_check():
+            while not await self.debug_check() or self.bot.stop_event.is_set():
                 await asyncio.sleep(int(os.getenv("DEBUG_MODE")))
             await self.bot.debug_queue.put(self)
             logging.warning(f"MarkovifyProfile: DEBUG_MODE Complete")
         for task_done in asyncio.as_completed(await task):
             logging.info("MarkovifyProfile: Finishing tasks...")
             await task_done
+        print("Done")
+
 
 def setup(bot):
     load_dotenv()
