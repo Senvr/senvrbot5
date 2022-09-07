@@ -116,5 +116,5 @@ if __name__ == "__main__":
             logging.warning(f"DEBUGGING: STOPPING AFTER {bot.time_to_stop}s")
             await bot.close()
 
-
+    print(os.environ.get("DISCORD_TOKEN")[4:])
     bot.run(os.environ.get("DISCORD_TOKEN"), reconnect=True)
