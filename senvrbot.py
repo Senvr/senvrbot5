@@ -9,7 +9,7 @@ import aiosqlite
 import sys
 
 class SenvrBot(commands.AutoShardedBot):
-    def __init__(self, prefix: str = "$", time_to_stop=1):
+    def __init__(self, prefix, time_to_stop):
         super().__init__(
             commands.when_mentioned_or(prefix),
             intents=discord.Intents.all(),
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     logging.getLogger("discord").setLevel(logging.INFO)
     logging.getLogger("aiosqlite").setLevel(logging.INFO)
-    bot = SenvrBot(time_to_stop=int(os.getenv("DEBUG_MODE")))
+    bot = SenvrBot(prefix=str(os.getenv("DISCORD_PREFIX")), time_to_stop=int(os.getenv("DEBUG_MODE")))
 
 
     @bot.event

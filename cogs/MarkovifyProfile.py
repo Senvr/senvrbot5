@@ -54,6 +54,9 @@ class MarkovifyProfile(commands.Cog):
                     profile: mkva.asyncmodel = await self._profile_make_or_get(author_id)
                     await profile.add_message(message_content)
                     logging.debug(f"mastercrawler: added message to profile")
+                    if not self.bot.status_queue.full():
+                        status=f"{author_id}: R: {profile.read_rate} W: {profile.write_rate}"
+                        await self.bot.status_queue.put(status)
         except discord.Forbidden:
             pass
 
