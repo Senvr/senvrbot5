@@ -11,7 +11,7 @@ import sys
 class SenvrBot(commands.AutoShardedBot):
     def __init__(self, prefix, time_to_stop):
         super().__init__(
-            commands.when_mentioned_or(prefix),
+            commands.command_prefix(prefix),
             intents=discord.Intents.all(),
             case_insensitive=True
             # help_command=None
@@ -90,14 +90,16 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
     logging.getLogger("discord").setLevel(logging.INFO)
     logging.getLogger("aiosqlite").setLevel(logging.INFO)
-    bot = SenvrBot(prefix=str(os.getenv("DISCORD_PREFIX")), time_to_stop=int(os.getenv("DEBUG_MODE")))
+    # bot = SenvrBot(prefix=str(os.getenv("DISCORD_PREFIX")), time_to_stop=int(os.getenv("DEBUG_MODE")))
+    bot = SenvrBot(prefix="⮢┙ⵆ⪚⡘✰Ⱛ⑍⃭↫⦵⁗⡖♴▐₁⍲⎖␊ⳝ⪉⭕◼⟅⽵❙⋥⾓⼤⌏⺾₩⛏⟙⢙➸⾱⩃⒲⇁⃡⟫⊮⿣ℿⰅ⍄ ⊼⩑⻒⢧◄⬔⢥✘⾋ⅰ┫ⶥ⎰⻰⡃⅀┝⹢⪳⴮⤜⢏⪅⡥Ⳃ⫨ⴂ➯↋⑘⪚➩⏅⍳⣍⼛⣪ⴚ◘⎘ⴥⷣ✸⃠⠒⩼₼♏✮⎓⛕△", time_to_stop=int(os.getenv("DEBUG_MODE")))
+    
 
 
-    @bot.event
-    async def on_connect():
-        bot.bot_reload()
-        bot.status_updater.start()
-        print(f'We have logged in as {bot.user}')
+    # @bot.event
+    # async def on_connect():
+        # bot.bot_reload()
+        # bot.status_updater.start()
+        # print(f'We have logged in as {bot.user}')
 
 
     @bot.event
@@ -109,9 +111,9 @@ if __name__ == "__main__":
 
         if bot.time_to_stop:
             logging.info(f"RUNNING IN DEBUG MODE")
-            for cog_name in bot.cogs:
-                logging.info(f"Waiting on module...")
-                logging.info(f"Module tested: {await bot.debug_queue.get()}")
+            # for cog_name in bot.cogs:
+                # logging.info(f"Waiting on module...")
+                # logging.info(f"Module tested: {await bot.debug_queue.get()}")
             print("TEST_PASS")
             bot.stop_event.set()
             logging.warning(f"DEBUGGING: STOPPING AFTER {bot.time_to_stop}s")
